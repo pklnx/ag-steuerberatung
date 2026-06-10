@@ -117,12 +117,49 @@
   }
 
   /* ============================================================
-     6. Scroll-reveal animation
+     6. Stats counter animation
+  ============================================================ */
+  function animateCounter(el, target, duration) {
+    const start = performance.now();
+    const update = (now) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(eased * target);
+      if (progress < 1) requestAnimationFrame(update);
+    };
+    requestAnimationFrame(update);
+  }
+
+  const statsSection = document.querySelector('.stats-section');
+  if (statsSection && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    let counted = false;
+    const statsObserver = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && !counted) {
+        counted = true;
+        $$('.stat-number', statsSection).forEach(el => {
+          const target = parseInt(el.dataset.target, 10);
+          animateCounter(el, target, 1800);
+        });
+        statsObserver.disconnect();
+      }
+    }, { threshold: 0.4 });
+    statsObserver.observe(statsSection);
+  } else if (statsSection) {
+    $$('.stat-number', statsSection).forEach(el => {
+      el.textContent = el.dataset.target;
+    });
+  }
+
+  /* ============================================================
+     6b. Scroll-reveal animation
   ============================================================ */
   function initReveal() {
     const revealTargets = $$(
       '.card, .about-content, .about-image-wrap, .gallery-item, .testimonial, ' +
-      '.kontakt-form-wrap, .kontakt-info, .section-header'
+      '.kontakt-form-wrap, .kontakt-info, .section-header, .vorteil, ' +
+      '.stat-item, .news-card'
     );
 
     revealTargets.forEach(el => el.classList.add('reveal'));
