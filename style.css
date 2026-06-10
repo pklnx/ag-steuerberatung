@@ -371,7 +371,7 @@ section {
   align-items: center;
   padding-top: calc(var(--header-h) + var(--sp-lg));
   padding-bottom: var(--sp-xl);
-  background: var(--clr-white);
+  background: linear-gradient(135deg, #1C2234 0%, #2a3354 100%);
 }
 
 .hero-inner {
@@ -399,7 +399,7 @@ section {
   font-weight: var(--fw-black);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--clr-black);
+  color: var(--clr-white);
   line-height: 1.1;
   margin-bottom: 1.5rem;
 }
@@ -407,7 +407,7 @@ section {
 .hero-sub {
   font-size: 1.05rem;
   line-height: 1.7;
-  color: var(--clr-text);
+  color: rgba(255,255,255,0.78);
   margin-bottom: 2rem;
   max-width: 460px;
 }
@@ -421,14 +421,14 @@ section {
 
 .hero-image-bg {
   position: absolute;
-  inset-inline-end: -1.5rem;
-  inset-block-start: 1.5rem;
+  inset-inline-end: -1rem;
+  inset-block-start: 1rem;
   width: calc(100% - 2rem);
-  height: calc(100% - 1.5rem);
+  height: calc(100% - 1rem);
   background: var(--clr-primary);
   border-radius: var(--radius);
   z-index: 0;
-  opacity: 0.12;
+  opacity: 0.5;
 }
 
 .hero-img {
@@ -442,6 +442,66 @@ section {
   object-position: top center;
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
+}
+
+/* ---- 8b. Vorteile Strip ---- */
+.vorteile-strip {
+  background: var(--clr-white);
+  padding-block: 2rem;
+  border-bottom: 1px solid var(--clr-border);
+}
+
+.vorteile-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+.vorteil {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+}
+
+.vorteil-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  background: rgba(200,16,46,0.08);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vorteil-icon svg {
+  width: 22px;
+  height: 22px;
+  stroke: var(--clr-primary);
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.vorteil div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.vorteil strong {
+  font-size: 0.9rem;
+  font-weight: var(--fw-black);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--clr-black);
+}
+
+.vorteil span {
+  font-size: 0.82rem;
+  color: var(--clr-text);
+  line-height: 1.4;
 }
 
 /* ---- 9. About ---- */
@@ -573,6 +633,49 @@ section {
   color: var(--clr-text);
 }
 
+/* ---- 10b. Stats Section ---- */
+.stats-section {
+  background: #1C2234;
+  padding-block: var(--sp-lg);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+  text-align: center;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.stat-number {
+  font-size: clamp(2.5rem, 5vw, 3.8rem);
+  font-weight: var(--fw-black);
+  color: var(--clr-primary);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-plus {
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  font-weight: var(--fw-black);
+  color: var(--clr-primary);
+  vertical-align: super;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.65);
+}
+
 /* ---- 11. CTA Banner ---- */
 .cta-banner {
   background: var(--clr-primary);
@@ -676,6 +779,92 @@ section {
   color: var(--clr-primary);
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+
+/* ---- 12b. News / Aktuelles ---- */
+#aktuelles {
+  background: var(--clr-light);
+}
+
+.news-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.75rem;
+}
+
+.news-card {
+  background: var(--clr-white);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition);
+  display: flex;
+  flex-direction: column;
+}
+
+.news-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+}
+
+.news-img-wrap {
+  aspect-ratio: 16/9;
+  overflow: hidden;
+}
+
+.news-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.news-card:hover .news-img-wrap img {
+  transform: scale(1.04);
+}
+
+.news-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0.6rem;
+}
+
+.news-date {
+  font-size: 0.78rem;
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--clr-primary);
+}
+
+.news-body h3 {
+  font-size: 1rem;
+  font-weight: var(--fw-black);
+  color: var(--clr-black);
+  line-height: 1.35;
+}
+
+.news-body p {
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--clr-text);
+  flex: 1;
+}
+
+.news-link {
+  font-size: 0.85rem;
+  font-weight: var(--fw-bold);
+  color: var(--clr-primary);
+  text-decoration: none;
+  transition: color var(--transition);
+  margin-top: 0.25rem;
+  align-self: flex-start;
+}
+
+.news-link:hover {
+  color: var(--clr-primary-dark);
 }
 
 /* ---- 13. Contact ---- */
@@ -985,10 +1174,19 @@ footer {
   .footer-inner { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; }
   .footer-legal { grid-column: 1 / -1; justify-content: flex-start; }
   .footer-nav { flex-direction: row; flex-wrap: wrap; gap: 0.5rem 1rem; }
+  .vorteile-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 2rem 1rem; }
+  .news-grid { grid-template-columns: repeat(2, 1fr); }
+  .news-card:last-child { display: none; }
 }
 
 @media (max-width: 768px) {
   :root { --sp-xl: 3rem; --sp-lg: 2rem; --header-h: 60px; }
+
+  .vorteile-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .news-grid { grid-template-columns: 1fr; }
+  .news-card:last-child { display: flex; }
 
   /* Mobile nav */
   .hamburger { display: flex; }
