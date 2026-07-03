@@ -224,19 +224,19 @@
       <div class="container">
         <div class="stats-grid">
           <div class="stat-item">
-            <span class="stat-number" data-target="100">0</span><span class="stat-plus">+</span>
+            <span class="stat-value"><span class="stat-number" data-target="100">0</span><span class="stat-plus">+</span></span>
             <span class="stat-label">Zufriedene Mandanten</span>
           </div>
           <div class="stat-item">
-            <span class="stat-number" data-target="15">0</span>
+            <span class="stat-value"><span class="stat-number" data-target="15">0</span></span>
             <span class="stat-label">Jahre Erfahrung</span>
           </div>
           <div class="stat-item">
-            <span class="stat-number" data-target="500">0</span><span class="stat-plus">+</span>
+            <span class="stat-value"><span class="stat-number" data-target="500">0</span><span class="stat-plus">+</span></span>
             <span class="stat-label">Steuererklärungen</span>
           </div>
           <div class="stat-item">
-            <span class="stat-number" data-target="20">0</span>
+            <span class="stat-value"><span class="stat-number" data-target="20">0</span></span>
             <span class="stat-label">Leistungen</span>
           </div>
         </div>
@@ -424,14 +424,16 @@
   <!-- ===== FOOTER ===== -->
   <footer role="contentinfo">
     <div class="container footer-inner">
-      <div class="footer-brand">
+      <div class="footer-col footer-brand">
         <a href="#hero" class="logo logo--white" aria-label="AG Steuerberatung – Seitenanfang">
           <span class="logo-ag">AG</span>
           <span class="logo-text">Steuerberatung</span>
         </a>
-        <p>Ihre Partnerin für Steuern und Finanzen.</p>
+        <p>Ihre Partnerin für Steuern und Finanzen – digital, persönlich und unkompliziert.</p>
       </div>
-      <nav aria-label="Footer-Navigation">
+
+      <nav class="footer-col" aria-label="Footer-Navigation">
+        <h4 class="footer-heading">Navigation</h4>
         <ul class="footer-nav">
           <li><a href="#hero">Home</a></li>
           <li><a href="#ueber-mich">Über mich</a></li>
@@ -441,10 +443,22 @@
           <li><a href="#kontakt">Kontakt</a></li>
         </ul>
       </nav>
-      <div class="footer-legal">
-        <button type="button" class="link-btn link-btn--footer" data-modal="impressum">Impressum</button>
-        <span aria-hidden="true">|</span>
-        <button type="button" class="link-btn link-btn--footer" data-modal="datenschutz">Datenschutz</button>
+
+      <div class="footer-col">
+        <h4 class="footer-heading">Kontakt</h4>
+        <ul class="footer-contact">
+          <li>Musterstraße 1<br />10115 Berlin</li>
+          <li><a href="tel:+493012345678">+49 30 123 456 78</a></li>
+          <li><a href="mailto:info@ag-steuerberatung.de">info@ag-steuerberatung.de</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-heading">Rechtliches</h4>
+        <ul class="footer-nav">
+          <li><button type="button" class="link-btn link-btn--footer" data-modal="impressum">Impressum</button></li>
+          <li><button type="button" class="link-btn link-btn--footer" data-modal="datenschutz">Datenschutz</button></li>
+        </ul>
       </div>
     </div>
     <div class="footer-bottom">
