@@ -745,6 +745,13 @@ section {
 .gallery-item:hover img   { transform: scale(1.05); }
 .gallery-item:hover .gallery-overlay { opacity: 0.2; }
 
+.gallery-note {
+  text-align: right;
+  font-size: 0.75rem;
+  color: #999;
+  margin-top: 0.75rem;
+}
+
 /* Testimonials */
 .testimonials {
   display: grid;
