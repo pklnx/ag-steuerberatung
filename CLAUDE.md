@@ -1,6 +1,7 @@
-# AGENTS.md
+# CLAUDE.md
 
 Guidance for AI agents (and humans) working on this repository.
+Auto-loaded by Claude Code at the start of each session.
 
 ## Project
 
