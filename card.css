@@ -307,6 +307,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   gap: 0.75rem;
   font-size: 0.8rem;
 }
+.card-footer .made { color: rgba(255,255,255,0.55); text-align: center; }
 .card-footer .legal { display: flex; gap: 1rem; }
 .card-footer .link-btn {
   color: rgba(255,255,255,0.7);
