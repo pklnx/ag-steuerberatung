@@ -107,6 +107,13 @@ No test suite. To verify, open the `.html` files directly in a browser, or take
 headless screenshots (Chromium is available). Check both desktop and mobile
 widths and that the three page footers stay in sync.
 
+## License
+
+This is **proprietary, all-rights-reserved** software/content (see `LICENSE`).
+It is **not** open source — do not add an open-source license or public-domain
+dedication, and do not reuse the code/content elsewhere without the owner's
+written permission.
+
 ## Open TODOs
 
 - Add the **USt-IdNr.** to the Impressum once available (the section was
