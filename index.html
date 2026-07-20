@@ -143,64 +143,17 @@
     <footer class="card-footer">
       <span>&copy; <span id="year"></span> AG Steuerberatung · Ann-Kathrin Garrell</span>
       <span class="legal">
-        <button type="button" class="link-btn" data-modal="impressum">Impressum</button>
+        <a href="impressum.html" class="link-btn">Impressum</a>
         <a href="datenschutz.html" class="link-btn">Datenschutz</a>
       </span>
     </footer>
 
   </main>
 
-  <!-- ===== MODAL: IMPRESSUM ===== -->
-  <div class="modal" id="modal-impressum" role="dialog" aria-modal="true" aria-labelledby="modal-impressum-title" hidden>
-    <div class="modal-backdrop"></div>
-    <div class="modal-content">
-      <button class="modal-close" aria-label="Schließen">&times;</button>
-      <h2 id="modal-impressum-title">Impressum</h2>
-      <p><strong>Angaben gemäß § 5 TMG</strong></p>
-      <p>Ann-Kathrin Garrell<br />Steuerberaterin<br />An der Heideblume 3<br />59558 Lippstadt (Lipperode)</p>
-      <p><strong>Kontakt</strong><br />Telefon: +49 15679 816820<br />E-Mail: ak@ag-steuerberatung.de</p>
-      <p><strong>Berufsbezeichnung und berufsrechtliche Regelungen</strong><br />
-        Berufsbezeichnung: Steuerberaterin (verliehen in Deutschland)<br />
-        Zuständige Kammer: Steuerberaterkammer Westfalen-Lippe<br />
-        Berufsrechtliche Regelungen: Steuerberatungsgesetz (StBerG), §§ 3, 4 StBerG
-      </p>
-      <p><strong>Umsatzsteuer-ID</strong><br />
-        Umsatzsteuer-Identifikationsnummer gemäß § 27a UStG: DE XXXXXXXXX
-      </p>
-      <p><em>Bitte ersetzen Sie die Umsatzsteuer-Identifikationsnummer vor der Veröffentlichung durch die tatsächliche Angabe.</em></p>
-    </div>
-  </div>
-
   <script>
     (function () {
       // Jahr im Footer
       document.getElementById('year').textContent = new Date().getFullYear();
-
-      // Modals
-      function openModal(name) {
-        var m = document.getElementById('modal-' + name);
-        if (!m) return;
-        m.hidden = false;
-        document.body.style.overflow = 'hidden';
-        var f = m.querySelector('.modal-close');
-        if (f) setTimeout(function () { f.focus(); }, 40);
-      }
-      function closeModal(m) { m.hidden = true; document.body.style.overflow = ''; }
-
-      document.querySelectorAll('[data-modal]').forEach(function (btn) {
-        btn.addEventListener('click', function () { openModal(btn.dataset.modal); });
-      });
-      document.querySelectorAll('.modal').forEach(function (m) {
-        var c = m.querySelector('.modal-close');
-        var b = m.querySelector('.modal-backdrop');
-        if (c) c.addEventListener('click', function () { closeModal(m); });
-        if (b) b.addEventListener('click', function () { closeModal(m); });
-      });
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') {
-          document.querySelectorAll('.modal:not([hidden])').forEach(closeModal);
-        }
-      });
     })();
   </script>
 </body>
