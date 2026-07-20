@@ -17,8 +17,13 @@ The site is intentionally lightweight: one landing page plus two legal pages.
   dependencies, no JavaScript** (the page works fully without JS).
 - Do **not** introduce bundlers, npm packages, CSS frameworks, or client-side
   JS unless explicitly requested. Keep it a zero-dependency static site.
-- **No external assets at runtime** (GDPR): system font stack only — no Google
-  Fonts, no CDNs, no trackers, no cookies. Keep it that way.
+- **No external assets at runtime** (GDPR): no Google Fonts, no CDNs, no
+  trackers, no cookies. Keep it that way. Fonts are either the system font
+  stack or **self-hosted** from `assets/fonts/` — never hotlinked. The site
+  currently self-hosts **Source Sans 3** (SIL OFL 1.1, license in
+  `assets/fonts/OFL.txt`), served locally with the system stack as fallback,
+  so no request ever leaves the origin. Any font must stay self-hosted and
+  under an OFL/Apache-style license that permits embedding.
 - Images live in `assets/` and are referenced with relative paths.
 
 ## File structure
@@ -31,6 +36,7 @@ card.css            All styles (shared by all three pages)
 assets/
   ann-kathrin-garrell.jpg   B/W portrait used in the hero
   og-image.jpg              1200x630 Open Graph preview image
+  fonts/                    Self-hosted Source Sans 3 (.woff2, weights 400/700/900) + OFL.txt
 CNAME               GitHub Pages custom domain (www.garrell-steuerberatung.de)
 .github/workflows/pages.yml   GitHub Pages deploy workflow
 ```
