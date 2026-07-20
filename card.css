@@ -315,6 +315,92 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .card-footer .link-btn:hover { color: #fff; }
 
+/* ---- Legal page (Datenschutz) ---- */
+.legal-topbar {
+  background: var(--clr-navy);
+  color: #fff;
+}
+.legal-topbar-inner {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.legal-topbar .brand {
+  font-weight: var(--fw-black);
+  letter-spacing: 0.02em;
+  color: #fff;
+}
+.legal-topbar .brand span { color: var(--clr-primary); }
+.legal-topbar .back {
+  font-size: 0.85rem;
+  font-weight: var(--fw-bold);
+  color: rgba(255,255,255,0.85);
+}
+.legal-topbar .back:hover { color: #fff; }
+
+.legal-page {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+  background: #fff;
+}
+.legal-page h1 {
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-weight: var(--fw-black);
+  color: var(--clr-navy);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 3px solid var(--clr-primary);
+}
+.legal-page h2 {
+  font-size: 1.15rem;
+  font-weight: var(--fw-black);
+  color: var(--clr-navy);
+  margin: 2rem 0 0.85rem;
+}
+.legal-page h3 {
+  font-size: 1rem;
+  font-weight: var(--fw-bold);
+  color: var(--clr-navy);
+  margin: 1.4rem 0 0.4rem;
+}
+.legal-page p {
+  font-size: 0.94rem;
+  line-height: 1.7;
+  color: var(--clr-text);
+  margin-bottom: 0.9rem;
+}
+.legal-page ul {
+  list-style: disc;
+  margin: 0 0 0.9rem 1.5rem;
+}
+.legal-page ul li {
+  font-size: 0.94rem;
+  line-height: 1.65;
+  color: var(--clr-text);
+  margin-bottom: 0.4rem;
+}
+.legal-page .def p { margin-bottom: 0.7rem; }
+.legal-page .address {
+  background: var(--clr-light);
+  border-left: 3px solid var(--clr-primary);
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+}
+.legal-page .address p { margin: 0; }
+.legal-page .attribution {
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--clr-border);
+  font-size: 0.82rem;
+  color: var(--clr-muted);
+}
+
 /* ---- Modal ---- */
 .modal { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 1rem; }
 .modal[hidden] { display: none; }
