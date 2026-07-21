@@ -79,13 +79,13 @@ Legal pages:
 
 - Name: Ann-Kathrin Garrell, Steuerberaterin
 - Address: An der Heideblume 3, 59558 Lippstadt (Lipperode), Germany
-- Phone: +49 15679 816820 · Email: ak@ag-steuerberatung.de
+- Phone: +49 15679 816820 · Email: ak@garrell-steuerberatung.de
 - Chamber: Steuerberaterkammer Westfalen-Lippe
 - Professional liability: andsafe AG, Provinzial-Allee 1, 48159 Münster
   (coverage: worldwide)
 - Website domain: **www.garrell-steuerberatung.de** (primary, with `www`)
-- Note: the email domain (`ag-steuerberatung.de`) differs from the website
-  domain; email is hosted elsewhere — do not touch its DNS/MX.
+- Note: email uses the website domain (`garrell-steuerberatung.de`) but is
+  hosted elsewhere (separate MX) — do not touch its DNS/MX.
 
 ## Hosting & deployment
 
