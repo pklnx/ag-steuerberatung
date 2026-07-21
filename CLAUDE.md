@@ -122,8 +122,6 @@ written permission.
 
 ## Open TODOs
 
-- Add the **USt-IdNr.** to the Impressum once available (the section was
-  intentionally removed until then).
 - The footer year is **hardcoded ("2026")** in all three HTML files — bump it at
   the turn of the year.
 - Keep the shared footer ("Made with ❤️ in Lipperode", legal links) identical
