@@ -361,6 +361,12 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   font-size: 0.8rem;
 }
 .card-footer .made { color: rgba(255,255,255,0.55); text-align: center; }
+.card-footer .made .heart {
+  width: 0.95em; height: 0.95em;
+  stroke: var(--clr-primary);
+  fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  vertical-align: -0.15em;
+}
 .card-footer .legal { display: flex; gap: 1rem; }
 .card-footer .link-btn {
   color: rgba(255,255,255,0.7);
