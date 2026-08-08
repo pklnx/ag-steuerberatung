@@ -1,0 +1,37 @@
+# Runs the website in a single container.
+#
+#   docker compose up -d --build
+#   curl -I http://127.0.0.1:8080/
+#
+# The container speaks plain HTTP on 8080 and is bound to localhost only: put a
+# TLS-terminating reverse proxy (Caddy, Traefik, nginx, …) in front of it and
+# forward www.garrell-steuerberatung.de to 127.0.0.1:8080. To expose it
+# directly instead, change the port mapping to "80:8080".
+
+services:
+  web:
+    build: .
+    # Or pull the image built by .github/workflows/docker.yml instead of
+    # building locally:
+    # image: ghcr.io/pklnx/ag-steuerberatung:latest
+    image: ag-steuerberatung:latest
+    container_name: ag-steuerberatung
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+
+    # Hardening: nothing in this container ever needs to write to disk or to
+    # gain privileges.
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

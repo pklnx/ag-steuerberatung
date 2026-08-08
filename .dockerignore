@@ -1,0 +1,12 @@
+# Allow-list: exclude everything, then re-include what the image needs.
+# Keeping this an allow-list means repo housekeeping files (docs, workflows,
+# LICENSE, CNAME, git metadata) can never leak into the public web root.
+*
+
+# The site
+!*.html
+!card.css
+!assets/
+
+# Build inputs that are not published
+!docker/

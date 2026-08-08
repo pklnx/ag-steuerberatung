@@ -38,7 +38,12 @@ assets/
   og-image.jpg              1200x630 Open Graph preview image
   fonts/                    Self-hosted Source Sans 3 (.woff2, weights 400/700/900) + OFL.txt
 CNAME               GitHub Pages custom domain (www.garrell-steuerberatung.de)
-.github/workflows/pages.yml   GitHub Pages deploy workflow
+Dockerfile          Container image: nginx + the static files (no build step)
+.dockerignore       Allow-list — only *.html, card.css, assets/, docker/ reach the image
+docker/nginx.conf   nginx config (unprivileged, security headers, IP-free access log)
+docker-compose.yml  Runs the container on the server
+.github/workflows/pages.yml    GitHub Pages deploy workflow
+.github/workflows/docker.yml   Builds + pushes the image to GHCR
 ```
 
 Design system lives in the `:root` CSS variables in `card.css`
@@ -101,6 +106,43 @@ Legal pages:
   GitHub, and revisit `CNAME` / the workflow. If Cloudflare's proxy (orange
   cloud) is ever enabled, add Cloudflare to the privacy policy.
 
+### Docker (for the move to the client's own server)
+
+The repo ships a container image so the site can run on any server without
+GitHub Pages. It changes nothing about the current Pages deploy — both exist
+side by side until the switch is made.
+
+```sh
+docker compose up -d --build      # or: docker build -t ag-steuerberatung .
+curl -I http://127.0.0.1:8080/
+```
+
+- **Image:** `nginx:1.30-alpine` + the static files. No build step; the
+  `Dockerfile` is pure `COPY`, so `docker/nginx.conf` is the only real logic.
+  New `.html` pages are picked up automatically (`COPY *.html`).
+- **Published to GHCR** by `.github/workflows/docker.yml` on every push to
+  `main` (amd64 + arm64): `ghcr.io/pklnx/ag-steuerberatung:latest`. The server
+  only needs `docker compose pull && docker compose up -d`.
+- **Unprivileged by design:** runs as the `nginx` user on port **8080**,
+  read-only root filesystem, all capabilities dropped, `no-new-privileges`.
+  Everything writable (pid file, temp paths) lives under `/tmp`. Those temp
+  paths must stay **one level** below `/tmp` — nginx creates the leaf directory
+  at startup but not intermediate parents.
+- **HTTP only.** Put a TLS-terminating reverse proxy (Caddy, Traefik, nginx)
+  in front and forward to `127.0.0.1:8080`. HSTS belongs on that proxy; there
+  is a commented-out `Strict-Transport-Security` line in `docker/nginx.conf`
+  for the case where the container itself terminates TLS.
+- **Privacy:** the access log deliberately omits the client IP. nginx always
+  writes the IP into *error* log entries though (404/403 at `error` level) —
+  set `error_log` to `crit` if even those must go.
+- **CSP** is strict (`default-src 'none'`, only `'self'` for style/font/img).
+  It works because the pages carry no inline `<style>`, no `style=` attributes
+  and no JS — keep it that way, or the header needs updating.
+- Serves clean URLs (`/impressum` as well as `/impressum.html`), denies
+  dotfiles, gzips HTML/CSS/SVG, and exposes `/healthz` for uptime checks.
+- **Before going live on the new server:** update the Datenschutz "Hosting"
+  section (§4) — it still names GitHub Pages.
+
 ## Git workflow
 
 - Develop on a feature branch (e.g. `claude/...`), commit, push.
@@ -112,6 +154,12 @@ Legal pages:
 No test suite. To verify, open the `.html` files directly in a browser, or take
 headless screenshots (Chromium is available). Check both desktop and mobile
 widths and that the three page footers stay in sync.
+
+`docker compose up -d --build` serves the site the way the server will
+(http://127.0.0.1:8080) — use it whenever a change could interact with the
+nginx config, e.g. new asset types, caching, or anything the CSP has to allow.
+After editing `docker/nginx.conf`, syntax-check it with
+`nginx -t -c "$PWD/docker/nginx.conf"` if nginx is installed locally.
 
 ## License
 
