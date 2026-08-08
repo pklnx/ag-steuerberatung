@@ -96,19 +96,23 @@ Legal pages:
 **The container image is the only deploy path.** Every push to `main` builds
 and publishes it; nothing is deployed to GitHub Pages any more.
 
-- **The cutover has happened.** The site runs on a **netcup** server (netcup
-  GmbH, Daimlerstraße 25, 76185 Karlsruhe), behind a TLS-terminating reverse
-  proxy that forwards to the container. The Pages workflow is deleted and no
-  longer deploys anything.
+- **The cutover has happened.** The repo owner operates the site on the client's
+  behalf, on a **netcup** server (netcup GmbH, Daimlerstraße 25, 76185
+  Karlsruhe), behind a TLS-terminating reverse proxy that forwards to the
+  container. The Pages workflow is deleted and no longer deploys anything.
+- **The data-protection chain matters for the legal text:** Ann-Kathrin Garrell
+  is the controller, the repo owner is her **processor** (Art. 28 DS-GVO), and
+  netcup is a **sub-processor** (Art. 28 Abs. 4 DS-GVO). Do not describe netcup
+  as her direct processor — she has no contract with them.
 - **Cloudflare** manages DNS and stays on **DNS only (grey cloud)** — it sees
   DNS queries, not website traffic, which is why the privacy policy needs no
   Cloudflare section. If the proxy (orange cloud) is ever switched on,
   Cloudflare terminates TLS and must be added to `datenschutz.html`.
   The `.com` domain 301-redirects to the `.de` via a Cloudflare redirect rule.
-- **Datenschutz §4 names netcup** as the host and processor, states that the
-  data stays in the EU, and records that an Art. 28 DS-GVO processing
-  agreement is in place. If the hoster, the AV-Vertrag or the Cloudflare
-  setting changes, that section has to change with it.
+- **Datenschutz §4** names the processor by name only (no address, by request),
+  netcup as the sub-processor with its full address, states that the data stays
+  in the EU, and records the Art. 28 DS-GVO agreement. If the hosting chain,
+  the AVV or the Cloudflare setting changes, that section has to change with it.
 - **Left over from the old setup:** GitHub Pages was never switched off in the
   repository settings, so it may still serve the frozen pre-cutover copy on its
   `github.io` URL. Set *Settings → Pages → Source* to **None** and delete the
