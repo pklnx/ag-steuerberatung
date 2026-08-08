@@ -37,13 +37,12 @@ assets/
   ann-kathrin-garrell.jpg   B/W portrait used in the hero
   og-image.jpg              1200x630 Open Graph preview image
   fonts/                    Self-hosted Source Sans 3 (.woff2, weights 400/700/900) + OFL.txt
-CNAME               GitHub Pages custom domain (www.garrell-steuerberatung.de)
+CNAME               Custom domain (www.garrell-steuerberatung.de) — inert, see Hosting
 Dockerfile          Container image: nginx + the static files (no build step)
 .dockerignore       Allow-list — only *.html, card.css, assets/, docker/ reach the image
 docker/nginx.conf   nginx config (unprivileged, security headers, IP-free access log)
 docker-compose.yml  Runs the container on the server
-.github/workflows/pages.yml    GitHub Pages deploy workflow
-.github/workflows/docker.yml   Builds + pushes the image to GHCR
+.github/workflows/docker.yml   Builds + pushes the image to GHCR (the only deploy)
 ```
 
 Design system lives in the `:root` CSS variables in `card.css`
@@ -94,23 +93,31 @@ Legal pages:
 
 ## Hosting & deployment
 
-- Currently hosted on **GitHub Pages**, deployed by
-  `.github/workflows/pages.yml` on every push to `main`.
-- Custom domain via `CNAME` = `www.garrell-steuerberatung.de`.
+**The container image is the only deploy path.** Every push to `main` builds
+and publishes it; nothing is deployed to GitHub Pages any more.
+
+- The Pages workflow has been **deleted**. GitHub Pages itself was never turned
+  off in the repository settings, so it keeps serving the **last deployment
+  from before the switch** — a frozen copy that no longer receives updates.
+  That is deliberate: it keeps the domain alive until the client's server takes
+  over. To take it down, set *Settings → Pages → Source* to **None**.
+- Custom domain via `CNAME` = `www.garrell-steuerberatung.de`. The file is
+  inert now (only the Pages build ever read it) and only still matters for that
+  frozen deployment.
 - **Cloudflare** manages DNS: A/AAAA records on the apex point to GitHub Pages
   IPs and `www` is a CNAME to `<user>.github.io`, all set to **DNS only (grey
   cloud)** so GitHub can issue TLS. The `.com` domain 301-redirects to the
   `.de` via a Cloudflare redirect rule.
-- **Planned:** move to the client's own server later. When that happens, update
-  the **Datenschutz "Hosting" section** (§4) to name the new host instead of
-  GitHub, and revisit `CNAME` / the workflow. If Cloudflare's proxy (orange
-  cloud) is ever enabled, add Cloudflare to the privacy policy.
+- **Still open — the cutover to the client's server:** point the DNS records at
+  the new server, get TLS onto the reverse proxy in front of the container,
+  update the **Datenschutz "Hosting" section** (§4) to name the new host
+  instead of GitHub, then disable Pages and drop `CNAME`. If Cloudflare's proxy
+  (orange cloud) is ever enabled, add Cloudflare to the privacy policy.
 
-### Docker (for the move to the client's own server)
+### Docker
 
-The repo ships a container image so the site can run on any server without
-GitHub Pages. It changes nothing about the current Pages deploy — both exist
-side by side until the switch is made.
+The container is what gets shipped: nginx plus the static files, runnable on
+any server.
 
 ```sh
 docker compose up -d --build      # or: docker build -t ag-steuerberatung .
@@ -121,8 +128,13 @@ curl -I http://127.0.0.1:8080/
   `Dockerfile` is pure `COPY`, so `docker/nginx.conf` is the only real logic.
   New `.html` pages are picked up automatically (`COPY *.html`).
 - **Published to GHCR** by `.github/workflows/docker.yml` on every push to
-  `main` (amd64 + arm64): `ghcr.io/pklnx/ag-steuerberatung:latest`. The server
-  only needs `docker compose pull && docker compose up -d`.
+  `main` (amd64 + arm64), tagged `latest` and `sha-<commit>`:
+  `ghcr.io/pklnx/ag-steuerberatung:latest`. The server only needs
+  `docker compose pull && docker compose up -d`; rolling back means pinning a
+  `sha-` tag. Pull requests build the image too, but do not push it.
+- The GHCR package is **public**, so the server pulls it without credentials —
+  no `docker login` needed. If it is ever switched back to private, the server
+  needs a login with a token carrying `read:packages`.
 - **Unprivileged by design:** runs as the `nginx` user on port **8080**,
   read-only root filesystem, all capabilities dropped, `no-new-privileges`.
   Everything writable (pid file, temp paths) lives under `/tmp`. Those temp
@@ -141,13 +153,15 @@ curl -I http://127.0.0.1:8080/
 - Serves clean URLs (`/impressum` as well as `/impressum.html`), denies
   dotfiles, gzips HTML/CSS/SVG, and exposes `/healthz` for uptime checks.
 - **Before going live on the new server:** update the Datenschutz "Hosting"
-  section (§4) — it still names GitHub Pages.
+  section (§4) — it still names GitHub Pages, which is correct only for as long
+  as the frozen Pages deployment is what visitors actually reach.
 
 ## Git workflow
 
 - Develop on a feature branch (e.g. `claude/...`), commit, push.
 - **Direct pushes to `main` are blocked** — open a PR; the owner merges it.
-  The GitHub Pages deploy runs after the merge to `main`.
+  The PR builds the container image as a check; merging to `main` publishes it
+  to GHCR.
 
 ## Local preview
 
