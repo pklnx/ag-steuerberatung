@@ -96,23 +96,27 @@ Legal pages:
 **The container image is the only deploy path.** Every push to `main` builds
 and publishes it; nothing is deployed to GitHub Pages any more.
 
-- The Pages workflow has been **deleted**. GitHub Pages itself was never turned
-  off in the repository settings, so it keeps serving the **last deployment
-  from before the switch** — a frozen copy that no longer receives updates.
-  That is deliberate: it keeps the domain alive until the client's server takes
-  over. To take it down, set *Settings → Pages → Source* to **None**.
-- Custom domain via `CNAME` = `www.garrell-steuerberatung.de`. The file is
-  inert now (only the Pages build ever read it) and only still matters for that
-  frozen deployment.
-- **Cloudflare** manages DNS: A/AAAA records on the apex point to GitHub Pages
-  IPs and `www` is a CNAME to `<user>.github.io`, all set to **DNS only (grey
-  cloud)** so GitHub can issue TLS. The `.com` domain 301-redirects to the
-  `.de` via a Cloudflare redirect rule.
-- **Still open — the cutover to the client's server:** point the DNS records at
-  the new server, get TLS onto the reverse proxy in front of the container,
-  update the **Datenschutz "Hosting" section** (§4) to name the new host
-  instead of GitHub, then disable Pages and drop `CNAME`. If Cloudflare's proxy
-  (orange cloud) is ever enabled, add Cloudflare to the privacy policy.
+- **The cutover has happened.** The repo owner operates the site on the client's
+  behalf, on a **netcup** server (netcup GmbH, Daimlerstraße 25, 76185
+  Karlsruhe), behind a TLS-terminating reverse proxy that forwards to the
+  container. The Pages workflow is deleted and no longer deploys anything.
+- **The data-protection chain matters for the legal text:** Ann-Kathrin Garrell
+  is the controller, the repo owner is her **processor** (Art. 28 DS-GVO), and
+  netcup is a **sub-processor** (Art. 28 Abs. 4 DS-GVO). Do not describe netcup
+  as her direct processor — she has no contract with them.
+- **Cloudflare** manages DNS and stays on **DNS only (grey cloud)** — it sees
+  DNS queries, not website traffic, which is why the privacy policy needs no
+  Cloudflare section. If the proxy (orange cloud) is ever switched on,
+  Cloudflare terminates TLS and must be added to `datenschutz.html`.
+  The `.com` domain 301-redirects to the `.de` via a Cloudflare redirect rule.
+- **Datenschutz §4** names the processor by name only (no address, by request),
+  netcup as the sub-processor with its full address, states that the data stays
+  in the EU, and records the Art. 28 DS-GVO agreement. If the hosting chain,
+  the AVV or the Cloudflare setting changes, that section has to change with it.
+- **Left over from the old setup:** GitHub Pages was never switched off in the
+  repository settings, so it may still serve the frozen pre-cutover copy on its
+  `github.io` URL. Set *Settings → Pages → Source* to **None** and delete the
+  now-meaningless `CNAME` file.
 
 ### Docker
 
@@ -152,9 +156,10 @@ curl -I http://127.0.0.1:8080/
   and no JS — keep it that way, or the header needs updating.
 - Serves clean URLs (`/impressum` as well as `/impressum.html`), denies
   dotfiles, gzips HTML/CSS/SVG, and exposes `/healthz` for uptime checks.
-- **Before going live on the new server:** update the Datenschutz "Hosting"
-  section (§4) — it still names GitHub Pages, which is correct only for as long
-  as the frozen Pages deployment is what visitors actually reach.
+- **The privacy policy describes this container's logging.** §4 states that the
+  webserver access log does not record IP addresses. That is a promise made by
+  `docker/nginx.conf` — if the `log_format` ever gains `$remote_addr`, §4 has
+  to be corrected in the same commit.
 
 ## Git workflow
 
