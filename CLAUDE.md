@@ -132,21 +132,52 @@ curl -I http://127.0.0.1:8080/
   `Dockerfile` is pure `COPY`, so `docker/nginx.conf` is the only real logic.
   New `.html` pages are picked up automatically (`COPY *.html`).
 - **Published to GHCR** by `.github/workflows/docker.yml` on every push to
-  `main` (amd64 + arm64), tagged `latest` and `sha-<commit>`:
+  `main` (amd64 + arm64), tagged `latest`, `<YYYYMMDD>` and `sha-<commit>`:
   `ghcr.io/pklnx/garrell-steuerberatung:latest`. The image name is derived from
   `github.repository`, so it follows the repository name automatically. The
-  server only needs `docker compose pull && docker compose up -d`; rolling back
-  means pinning a `sha-` tag. Pull requests build the image too, but do not push
-  it.
-- **Repository rename (`ag-steuerberatung` → `garrell-steuerberatung`):** the
-  first push to `main` after the rename creates a *new* GHCR package under the
-  new name. New packages are **private** by default — switch it to public, and
-  point the server's `docker-compose.yml` at the new image. The old
-  `ag-steuerberatung` package keeps its images and can be deleted once the
-  server runs the new one.
+  server only needs `docker compose pull && docker compose up -d`. Pull requests
+  build the image too, but do not push it.
+- **Roll back with the date tag, not `sha-`.** A scheduled rebuild builds the
+  same commit again, so it overwrites that commit's `sha-` tag with a newer
+  nginx — the `sha-` tag identifies the *content*, not a particular build. The
+  `YYYYMMDD` tag is the one that pins a specific image.
 - The GHCR package is **public**, so the server pulls it without credentials —
-  no `docker login` needed. If it is ever switched back to private, the server
-  needs a login with a token carrying `read:packages`.
+  no `docker login` needed. It inherited that visibility when the repository
+  rename created it; if it is ever switched to private, the server needs a login
+  with a token carrying `read:packages`. The old `ag-steuerberatung` package
+  still holds the pre-rename images and can be deleted.
+
+#### Keeping the software current
+
+The site itself changes rarely; nginx and the Alpine packages inside the image
+do not. Four pieces cover that, and each one only works because the one before
+it does:
+
+1. **The weekly schedule** in `docker.yml` (Mondays 04:00 UTC) rebuilds the
+   unchanged commit, which re-resolves `nginx:1.30-alpine` and picks up its
+   current patch release. `pull: true` on the build step is what forces that
+   re-resolution — without it a cached base layer would defeat the whole thing.
+2. **Dependabot** (`.github/dependabot.yml`) handles what the schedule cannot:
+   the pinned minor. `1.30` will go end-of-life eventually and the schedule
+   would keep building it; Dependabot opens a PR for the next stable line.
+3. **DIUN on the server** polls the registry and reports when `:latest` points
+   at a new digest. It only ever sees what CI publishes — which is why the
+   schedule is a precondition for it, not an alternative to it. Its silence
+   means "nothing was built", not "nothing needs building".
+4. **A human pulls.** DIUN notifies, it does not deploy. Nothing restarts the
+   container on its own, by choice.
+
+Two things this arrangement depends on:
+
+- **`org.opencontainers.image.created` is pinned to the commit date.**
+  `metadata-action` would otherwise stamp the build time into the image config
+  and change the manifest digest on every run, so DIUN would report every idle
+  Monday rebuild. With the label pinned, an unchanged rebuild is bit-identical
+  and stays quiet. Do not drop that override.
+- **GitHub disables scheduled workflows after 60 days of repository
+  inactivity** — a real risk here, since months can pass without a content
+  change. The Dependabot commits are what keep the schedule alive; if Dependabot
+  is ever removed, the schedule will quietly stop.
 - **Unprivileged by design:** runs as the `nginx` user on port **8080**,
   read-only root filesystem, all capabilities dropped, `no-new-privileges`.
   Everything writable (pid file, temp paths) lives under `/tmp`. Those temp

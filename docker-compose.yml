@@ -20,6 +20,13 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
 
+    # DIUN on the server polls the registry and reports when :latest points at a
+    # new digest; pulling stays a deliberate step. Only needed if DIUN runs with
+    # watchByDefault off — and only meaningful once `image:` names the GHCR
+    # image, since there is nothing to poll for a locally built one.
+    # labels:
+    #   - "diun.enable=true"
+
     # Hardening: nothing in this container ever needs to write to disk or to
     # gain privileges.
     read_only: true

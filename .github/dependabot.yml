@@ -1,0 +1,30 @@
+# The weekly rebuild in .github/workflows/docker.yml keeps nginx patched inside
+# the 1.30 line, but it can never leave it: the Dockerfile pins that minor by
+# hand, so once 1.30 goes end-of-life the schedule would happily keep building a
+# dead branch. Dependabot is what notices the next stable line and opens a PR
+# for it, with a diff and a container build to look at rather than a silent bump.
+#
+# The PRs have a second job: GitHub disables scheduled workflows after 60 days
+# without repository activity, and on a site that goes months without a content
+# change these commits are what keep the Monday rebuild running.
+version: 2
+updates:
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "Update"
+    labels:
+      - "dependencies"
+
+  # The workflow's own actions (checkout, buildx, metadata, build-push) age too,
+  # and a deprecated major eventually stops running without warning.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "Update"
+    labels:
+      - "dependencies"
