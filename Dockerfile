@@ -8,7 +8,7 @@
 #
 # Bump the base image by changing the minor version below (patch releases are
 # picked up automatically on rebuild).
-FROM nginx:1.30-alpine
+FROM nginx:1.31-alpine
 
 LABEL org.opencontainers.image.title="AG Steuerberatung" \
       org.opencontainers.image.description="Static website of Ann-Kathrin Garrell, Steuerberaterin (Lipperode)" \
