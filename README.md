@@ -76,10 +76,13 @@ screenshots, at desktop **and** mobile widths.
 The container image is the only deploy path. GitHub Pages served this site before the
 cutover and no longer does.
 
-The image is `nginx:1.30-alpine` with the static files baked in — the `Dockerfile` is pure
+The image is an `nginx:alpine` with the static files baked in — the `Dockerfile` is pure
 `COPY`, so `docker/nginx.conf` is the only real logic in it. `COPY *.html` means new pages
 are picked up without touching the Dockerfile. It serves **HTTP on port 8080 only**; TLS is
-handled by the reverse proxy in front.
+handled by the reverse proxy in front. The base image is intentionally unpinned, so every
+rebuild picks up the current nginx (mainline) with its security patches. A new minor can
+therefore land unannounced — if one ever breaks `docker/nginx.conf`, pin a known-good minor
+such as `nginx:1.31-alpine` in the `Dockerfile` until the config is adjusted.
 
 ```
 docker compose up -d --build
@@ -120,6 +123,16 @@ Rolling back means pinning a tag — use the `YYYYMMDD` tag, not `sha-<commit>`.
 rebuild builds the same commit again and overwrites its `sha-` tag with a newer nginx, so
 that tag identifies the content, not a particular build.
 
+Before publishing, CI builds the image, starts it with the same `--read-only --tmpfs /tmp`,
+dropped-capabilities hardening the compose file uses, and checks that it becomes healthy,
+runs as `nginx` rather than root, serves all three pages byte-for-byte, resolves the clean
+URL `/impressum`, answers `/healthz` with a 200, caches the fonts for 30 days, sends the CSP
+with `style-src 'self'` and no `unsafe-inline` anywhere, denies dotfiles with a 403, answers
+everything else with a 404, and writes an access log that contains no IP address. Pull
+requests run the same build and smoke test but push nothing, so a broken image never reaches
+the registry — including on the weekly rebuild, which is where an unannounced nginx release
+would otherwise slip through.
+
 ### Reverse proxy examples
 
 nginx on the host:
@@ -146,20 +159,22 @@ endpoint.
 
 ## Keeping the image current
 
-The site changes rarely; the software inside the image does not. Four pieces cover that, and
-each only works because the one before it does:
+The site changes rarely; the software inside the image does not. Three pieces cover that,
+and each only works because the one before it does:
 
 1. **A weekly rebuild** (Mondays 04:00 UTC) rebuilds the unchanged commit, re-resolving
-   `nginx:1.30-alpine` to whatever patch release it points at today. `pull: true` on the
+   `nginx:alpine` to whatever mainline release it points at today. `pull: true` on the
    build step forces that re-resolution — a cached base layer would defeat the point.
-2. **Dependabot** handles what the schedule cannot: the minor is pinned by hand, so once
-   `1.30` goes end-of-life the schedule would keep building a dead branch. Dependabot opens
-   a PR for the next stable line.
-3. **DIUN on the server** polls the registry and reports when `:latest` points at a new
+   Since the tag floats, this covers new minors as well, and no commit is ever needed to
+   stay current. A new minor therefore arrives unannounced, which is what the smoke test
+   is for — see the escape hatch above if one ever breaks the config.
+2. **DIUN on the server** polls the registry and reports when `:latest` points at a new
    digest. It only ever sees what CI publishes, which is why the schedule is a precondition
    for it rather than an alternative — DIUN's silence means "nothing was built", not
    "nothing needs building".
-4. **A human pulls.** DIUN notifies, it does not deploy:
+3. **A human pulls.** DIUN notifies, it does not deploy. That manual step is also what
+   keeps an unannounced mainline release from reaching the site unnoticed — a broken image
+   lands in the registry, not on the server:
 
    ```
    docker compose pull && docker compose up -d
@@ -172,8 +187,9 @@ Two dependencies worth knowing before changing the workflow:
   digest on every run — DIUN would then report every idle Monday rebuild until nobody reads
   its mail any more. Pinned, an unchanged rebuild is bit-identical and stays quiet.
 - GitHub disables scheduled workflows after **60 days without repository activity**, a real
-  risk on a site that can go months without an edit. The Dependabot commits are what keep
-  the schedule alive.
+  risk on a site that can go months without an edit. With the base image unpinned, the
+  monthly Dependabot **action** updates are the only commits left to keep the schedule
+  alive.
 
 ## Content Security Policy
 

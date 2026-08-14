@@ -128,7 +128,8 @@ docker compose up -d --build      # or: docker build -t garrell-steuerberatung .
 curl -I http://127.0.0.1:8080/
 ```
 
-- **Image:** `nginx:1.30-alpine` + the static files. No build step; the
+- **Image:** `nginx:alpine` (unpinned, mainline) + the static files. No build
+  step; the
   `Dockerfile` is pure `COPY`, so `docker/nginx.conf` is the only real logic.
   New `.html` pages are picked up automatically (`COPY *.html`).
 - **Published to GHCR** by `.github/workflows/docker.yml` on every push to
@@ -137,6 +138,17 @@ curl -I http://127.0.0.1:8080/
   `github.repository`, so it follows the repository name automatically. The
   server only needs `docker compose pull && docker compose up -d`. Pull requests
   build the image too, but do not push it.
+- **Nothing is published untested.** Every run — pull request, merge and weekly
+  rebuild alike — builds the image, starts it with the compose file's hardening
+  and probes it before the push step: healthy, running as `nginx`, all three
+  pages byte-identical, `/impressum` resolving through `try_files`, `/healthz`
+  200, fonts cached 30d, the CSP present with `style-src 'self'` and no
+  `unsafe-inline`, dotfiles 403, unknown paths 404, and **no IP address in the
+  access log**. Those last two are assertions about promises made elsewhere:
+  the CSP one fails if CSS moves back into the HTML, the log one fails if
+  `log_format` ever gains `$remote_addr` — which `datenschutz.html` §4 forbids.
+  When a check has to change, the corresponding promise probably has to change
+  with it; do not just relax the test.
 - **Roll back with the date tag, not `sha-`.** A scheduled rebuild builds the
   same commit again, so it overwrites that commit's `sha-` tag with a newer
   nginx — the `sha-` tag identifies the *content*, not a particular build. The
@@ -150,22 +162,26 @@ curl -I http://127.0.0.1:8080/
 #### Keeping the software current
 
 The site itself changes rarely; nginx and the Alpine packages inside the image
-do not. Four pieces cover that, and each one only works because the one before
+do not. Three pieces cover that, and each one only works because the one before
 it does:
 
 1. **The weekly schedule** in `docker.yml` (Mondays 04:00 UTC) rebuilds the
-   unchanged commit, which re-resolves `nginx:1.30-alpine` and picks up its
-   current patch release. `pull: true` on the build step is what forces that
+   unchanged commit, which re-resolves `nginx:alpine` and picks up the current
+   mainline release. `pull: true` on the build step is what forces that
    re-resolution — without it a cached base layer would defeat the whole thing.
-2. **Dependabot** (`.github/dependabot.yml`) handles what the schedule cannot:
-   the pinned minor. `1.30` will go end-of-life eventually and the schedule
-   would keep building it; Dependabot opens a PR for the next stable line.
-3. **DIUN on the server** polls the registry and reports when `:latest` points
+   Because the tag is unpinned this covers new minor versions too, so no commit
+   is ever needed to stay current. A new minor therefore lands **unannounced** —
+   which is what the smoke test below is for. The escape hatch is to pin a
+   known-good minor in the `Dockerfile`; `.github/dependabot.yml` then resumes
+   bumping it.
+2. **DIUN on the server** polls the registry and reports when `:latest` points
    at a new digest. It only ever sees what CI publishes — which is why the
    schedule is a precondition for it, not an alternative to it. Its silence
    means "nothing was built", not "nothing needs building".
-4. **A human pulls.** DIUN notifies, it does not deploy. Nothing restarts the
-   container on its own, by choice.
+3. **A human pulls.** DIUN notifies, it does not deploy. Nothing restarts the
+   container on its own, by choice — which is also what keeps an unannounced
+   mainline release from reaching the site unnoticed: a broken image lands in
+   GHCR, not on the server.
 
 Two things this arrangement depends on:
 
@@ -176,8 +192,9 @@ Two things this arrangement depends on:
   and stays quiet. Do not drop that override.
 - **GitHub disables scheduled workflows after 60 days of repository
   inactivity** — a real risk here, since months can pass without a content
-  change. The Dependabot commits are what keep the schedule alive; if Dependabot
-  is ever removed, the schedule will quietly stop.
+  change. With the base image unpinned, the monthly **action** updates are the
+  only Dependabot commits left, and therefore the only thing keeping the
+  schedule alive; if Dependabot is ever removed, the schedule will quietly stop.
 - **Unprivileged by design:** runs as the `nginx` user on port **8080**,
   read-only root filesystem, all capabilities dropped, `no-new-privileges`.
   Everything writable (pid file, temp paths) lives under `/tmp`. Those temp
