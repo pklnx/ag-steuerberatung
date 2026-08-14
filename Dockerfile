@@ -6,9 +6,12 @@
 #   docker build -t garrell-steuerberatung .
 #   docker run --rm -p 8080:8080 garrell-steuerberatung
 #
-# Bump the base image by changing the minor version below (patch releases are
-# picked up automatically on rebuild).
-FROM nginx:1.31-alpine
+# The base image is deliberately unpinned: every rebuild resolves to the current
+# nginx mainline, so security fixes need no commit. New minor versions therefore
+# land unannounced — if one ever breaks docker/nginx.conf the container stops
+# starting, and the fix is to pin a known-good minor here (e.g. nginx:1.31-alpine)
+# until the config is adjusted.
+FROM nginx:alpine
 
 LABEL org.opencontainers.image.title="AG Steuerberatung" \
       org.opencontainers.image.description="Static website of Ann-Kathrin Garrell, Steuerberaterin (Lipperode)" \

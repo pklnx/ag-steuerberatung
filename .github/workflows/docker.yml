@@ -9,9 +9,10 @@ name: Build and publish Docker image
 # before it reaches main.
 #
 # The weekly schedule is what keeps nginx and the Alpine packages current: the
-# image is pure COPY on top of nginx:1.30-alpine, so rebuilding an unchanged
-# commit picks up whatever patch release that tag points at today. Without it a
-# site that nobody edits would keep serving the nginx of its last content edit.
+# image is pure COPY on top of the unpinned nginx:alpine, so rebuilding an
+# unchanged commit picks up whatever mainline release that tag points at today.
+# Without it a site that nobody edits would keep serving the nginx of its last
+# content edit.
 
 on:
   push:
@@ -20,8 +21,9 @@ on:
   pull_request:
   schedule:
     # Mondays 04:00 UTC. GitHub disables scheduled workflows after 60 days
-    # without repository activity — the Dependabot PRs are what keep this one
-    # alive on a site that goes months without a content change.
+    # without repository activity — with the base image unpinned, the Dependabot
+    # action updates are the only commits that keep this one alive on a site
+    # that goes months without a content change.
     - cron: '0 4 * * 1'
   workflow_dispatch:
 
@@ -94,7 +96,7 @@ jobs:
           # Only main/tags need arm64; on a PR one architecture is enough to
           # prove the image still builds.
           platforms: ${{ github.event_name == 'pull_request' && 'linux/amd64' || 'linux/amd64,linux/arm64' }}
-          # Re-resolve nginx:1.30-alpine on every build — without this the whole
+          # Re-resolve nginx:alpine on every build — without this the whole
           # point of the weekly schedule is lost to a cached base layer.
           pull: true
           push: ${{ github.event_name != 'pull_request' }}

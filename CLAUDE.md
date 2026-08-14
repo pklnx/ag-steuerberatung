@@ -128,7 +128,8 @@ docker compose up -d --build      # or: docker build -t garrell-steuerberatung .
 curl -I http://127.0.0.1:8080/
 ```
 
-- **Image:** `nginx:1.30-alpine` + the static files. No build step; the
+- **Image:** `nginx:alpine` (unpinned, mainline) + the static files. No build
+  step; the
   `Dockerfile` is pure `COPY`, so `docker/nginx.conf` is the only real logic.
   New `.html` pages are picked up automatically (`COPY *.html`).
 - **Published to GHCR** by `.github/workflows/docker.yml` on every push to
@@ -150,22 +151,26 @@ curl -I http://127.0.0.1:8080/
 #### Keeping the software current
 
 The site itself changes rarely; nginx and the Alpine packages inside the image
-do not. Four pieces cover that, and each one only works because the one before
+do not. Three pieces cover that, and each one only works because the one before
 it does:
 
 1. **The weekly schedule** in `docker.yml` (Mondays 04:00 UTC) rebuilds the
-   unchanged commit, which re-resolves `nginx:1.30-alpine` and picks up its
-   current patch release. `pull: true` on the build step is what forces that
+   unchanged commit, which re-resolves `nginx:alpine` and picks up the current
+   mainline release. `pull: true` on the build step is what forces that
    re-resolution — without it a cached base layer would defeat the whole thing.
-2. **Dependabot** (`.github/dependabot.yml`) handles what the schedule cannot:
-   the pinned minor. `1.30` will go end-of-life eventually and the schedule
-   would keep building it; Dependabot opens a PR for the next stable line.
-3. **DIUN on the server** polls the registry and reports when `:latest` points
+   Because the tag is unpinned this covers new minor versions too, so no commit
+   is ever needed to stay current — the deliberate trade being that a new minor
+   lands **unannounced**, and there is no smoke test to catch one that breaks
+   `docker/nginx.conf`. The escape hatch is to pin a known-good minor in the
+   `Dockerfile`; `.github/dependabot.yml` then resumes bumping it.
+2. **DIUN on the server** polls the registry and reports when `:latest` points
    at a new digest. It only ever sees what CI publishes — which is why the
    schedule is a precondition for it, not an alternative to it. Its silence
    means "nothing was built", not "nothing needs building".
-4. **A human pulls.** DIUN notifies, it does not deploy. Nothing restarts the
-   container on its own, by choice.
+3. **A human pulls.** DIUN notifies, it does not deploy. Nothing restarts the
+   container on its own, by choice — which is also what keeps an unannounced
+   mainline release from reaching the site unnoticed: a broken image lands in
+   GHCR, not on the server.
 
 Two things this arrangement depends on:
 
@@ -176,8 +181,9 @@ Two things this arrangement depends on:
   and stays quiet. Do not drop that override.
 - **GitHub disables scheduled workflows after 60 days of repository
   inactivity** — a real risk here, since months can pass without a content
-  change. The Dependabot commits are what keep the schedule alive; if Dependabot
-  is ever removed, the schedule will quietly stop.
+  change. With the base image unpinned, the monthly **action** updates are the
+  only Dependabot commits left, and therefore the only thing keeping the
+  schedule alive; if Dependabot is ever removed, the schedule will quietly stop.
 - **Unprivileged by design:** runs as the `nginx` user on port **8080**,
   read-only root filesystem, all capabilities dropped, `no-new-privileges`.
   Everything writable (pid file, temp paths) lives under `/tmp`. Those temp
