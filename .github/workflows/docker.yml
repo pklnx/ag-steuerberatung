@@ -89,6 +89,105 @@ jobs:
           labels: |
             org.opencontainers.image.created=${{ steps.commit.outputs.date }}
 
+      # Build locally and actually run it before anything is published. With the
+      # base image unpinned, a new nginx mainline arrives without warning — this
+      # is what stands between a release that no longer accepts nginx.conf and
+      # the registry.
+      - name: Build test image (amd64, loadable)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          pull: true
+          tags: garrell-steuerberatung:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Start the container and probe it
+        run: |
+          set -euo pipefail
+
+          # Same hardening the compose file promises, so CI proves it holds.
+          docker run -d --name smoke \
+            --read-only --tmpfs /tmp \
+            --cap-drop ALL --security-opt no-new-privileges:true \
+            -p 127.0.0.1:8080:8080 garrell-steuerberatung:test
+
+          echo "::group::Wait for healthy"
+          for _ in $(seq 60); do
+            status=$(docker inspect -f '{{.State.Health.Status}}' smoke)
+            [ "$status" = healthy ] && break
+            if [ "$status" = unhealthy ]; then docker logs smoke; exit 1; fi
+            sleep 1
+          done
+          if [ "$(docker inspect -f '{{.State.Health.Status}}' smoke)" != healthy ]; then
+            echo "container never became healthy"; docker logs smoke; exit 1
+          fi
+          echo "::endgroup::"
+
+          # Running as non-root? Otherwise redirecting the writable paths to
+          # /tmp and the read-only root filesystem are pointless.
+          test "$(docker exec smoke id -un)" = nginx
+          echo "user: $(docker exec smoke id -un) (uid $(docker exec smoke id -u))"
+
+          # Every page byte-for-byte what the repository holds.
+          for page in index impressum datenschutz; do
+            curl -fsS "http://127.0.0.1:8080/$page.html" -o "served-$page.html"
+            diff -q "served-$page.html" "$page.html"
+          done
+          curl -fsS http://127.0.0.1:8080/ -o served-root.html
+          diff -q served-root.html index.html
+
+          # Clean URLs (try_files): /impressum has to serve impressum.html.
+          curl -fsS http://127.0.0.1:8080/impressum -o served-clean.html
+          diff -q served-clean.html impressum.html
+
+          # The stylesheet and a font, so the CSP assertions below mean something.
+          curl -fsS http://127.0.0.1:8080/card.css -o /dev/null
+          curl -fsS -D font.txt -o /dev/null \
+            http://127.0.0.1:8080/assets/fonts/source-sans-3-latin-400-normal.woff2
+          grep -qi 'max-age=2592000' font.txt   # the 30d rule for /assets/fonts/
+
+          # The liveness endpoint the HEALTHCHECK probes.
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/healthz)" = 200
+
+          echo "::group::Security headers"
+          curl -fsS -D headers.txt -o /dev/null http://127.0.0.1:8080/
+          cat headers.txt
+          # The CSP enforces the no-external-requests rule the privacy policy
+          # rests on. style-src must stay 'self': the moment it needs
+          # 'unsafe-inline', someone put CSS back into the HTML.
+          grep -qi "^content-security-policy:.*default-src 'none'" headers.txt
+          grep -qi "^content-security-policy:.*style-src 'self'"   headers.txt
+          if grep -qi "unsafe-inline" headers.txt; then
+            echo "CSP allows inline styles — card.css is no longer the only stylesheet"; exit 1
+          fi
+          grep -qi '^x-content-type-options: nosniff' headers.txt
+          grep -qi '^x-frame-options: DENY'           headers.txt
+          grep -qi '^referrer-policy:'                headers.txt
+          echo "::endgroup::"
+
+          # Unknown paths 404, dotfiles are denied outright.
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/nope)"    = 404
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/.env)"    = 403
+
+          echo "::group::Access log carries no client IP"
+          # §4 of datenschutz.html promises this. nginx writes the access log to
+          # stdout and the error log to stderr, and only the latter is allowed to
+          # contain an address — so look at stdout alone.
+          curl -fsS -A smoketest http://127.0.0.1:8080/ -o /dev/null
+          docker logs smoke 2>/dev/null | tail -n 3 | tee access.log
+          # The privacy format starts with the timestamp; "combined" would start
+          # with $remote_addr.
+          grep -qE '^\[' access.log
+          if grep -qE '[0-9]{1,3}(\.[0-9]{1,3}){3}' access.log; then
+            echo "access log contains an IP address — datenschutz.html §4 no longer holds"; exit 1
+          fi
+          echo "::endgroup::"
+
+          echo "smoke test passed"
+          docker rm -f smoke
+
       - name: Build and push
         uses: docker/build-push-action@v7
         with:

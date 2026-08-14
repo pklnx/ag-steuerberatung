@@ -123,6 +123,16 @@ Rolling back means pinning a tag — use the `YYYYMMDD` tag, not `sha-<commit>`.
 rebuild builds the same commit again and overwrites its `sha-` tag with a newer nginx, so
 that tag identifies the content, not a particular build.
 
+Before publishing, CI builds the image, starts it with the same `--read-only --tmpfs /tmp`,
+dropped-capabilities hardening the compose file uses, and checks that it becomes healthy,
+runs as `nginx` rather than root, serves all three pages byte-for-byte, resolves the clean
+URL `/impressum`, answers `/healthz` with a 200, caches the fonts for 30 days, sends the CSP
+with `style-src 'self'` and no `unsafe-inline` anywhere, denies dotfiles with a 403, answers
+everything else with a 404, and writes an access log that contains no IP address. Pull
+requests run the same build and smoke test but push nothing, so a broken image never reaches
+the registry — including on the weekly rebuild, which is where an unannounced nginx release
+would otherwise slip through.
+
 ### Reverse proxy examples
 
 nginx on the host:
@@ -156,8 +166,8 @@ and each only works because the one before it does:
    `nginx:alpine` to whatever mainline release it points at today. `pull: true` on the
    build step forces that re-resolution — a cached base layer would defeat the point.
    Since the tag floats, this covers new minors as well, and no commit is ever needed to
-   stay current. There is no smoke test, so nothing would catch a mainline release that
-   breaks the config — see the escape hatch above.
+   stay current. A new minor therefore arrives unannounced, which is what the smoke test
+   is for — see the escape hatch above if one ever breaks the config.
 2. **DIUN on the server** polls the registry and reports when `:latest` points at a new
    digest. It only ever sees what CI publishes, which is why the schedule is a precondition
    for it rather than an alternative — DIUN's silence means "nothing was built", not

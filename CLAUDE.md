@@ -138,6 +138,17 @@ curl -I http://127.0.0.1:8080/
   `github.repository`, so it follows the repository name automatically. The
   server only needs `docker compose pull && docker compose up -d`. Pull requests
   build the image too, but do not push it.
+- **Nothing is published untested.** Every run — pull request, merge and weekly
+  rebuild alike — builds the image, starts it with the compose file's hardening
+  and probes it before the push step: healthy, running as `nginx`, all three
+  pages byte-identical, `/impressum` resolving through `try_files`, `/healthz`
+  200, fonts cached 30d, the CSP present with `style-src 'self'` and no
+  `unsafe-inline`, dotfiles 403, unknown paths 404, and **no IP address in the
+  access log**. Those last two are assertions about promises made elsewhere:
+  the CSP one fails if CSS moves back into the HTML, the log one fails if
+  `log_format` ever gains `$remote_addr` — which `datenschutz.html` §4 forbids.
+  When a check has to change, the corresponding promise probably has to change
+  with it; do not just relax the test.
 - **Roll back with the date tag, not `sha-`.** A scheduled rebuild builds the
   same commit again, so it overwrites that commit's `sha-` tag with a newer
   nginx — the `sha-` tag identifies the *content*, not a particular build. The
@@ -159,10 +170,10 @@ it does:
    mainline release. `pull: true` on the build step is what forces that
    re-resolution — without it a cached base layer would defeat the whole thing.
    Because the tag is unpinned this covers new minor versions too, so no commit
-   is ever needed to stay current — the deliberate trade being that a new minor
-   lands **unannounced**, and there is no smoke test to catch one that breaks
-   `docker/nginx.conf`. The escape hatch is to pin a known-good minor in the
-   `Dockerfile`; `.github/dependabot.yml` then resumes bumping it.
+   is ever needed to stay current. A new minor therefore lands **unannounced** —
+   which is what the smoke test below is for. The escape hatch is to pin a
+   known-good minor in the `Dockerfile`; `.github/dependabot.yml` then resumes
+   bumping it.
 2. **DIUN on the server** polls the registry and reports when `:latest` points
    at a new digest. It only ever sees what CI publishes — which is why the
    schedule is a precondition for it, not an alternative to it. Its silence
