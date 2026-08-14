@@ -13,9 +13,9 @@ services:
     build: .
     # Or pull the image built by .github/workflows/docker.yml instead of
     # building locally:
-    # image: ghcr.io/pklnx/ag-steuerberatung:latest
-    image: ag-steuerberatung:latest
-    container_name: ag-steuerberatung
+    # image: ghcr.io/pklnx/garrell-steuerberatung:latest
+    image: garrell-steuerberatung:latest
+    container_name: garrell-steuerberatung
     restart: unless-stopped
     ports:
       - "127.0.0.1:8080:8080"

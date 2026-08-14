@@ -2,7 +2,7 @@ name: Build and publish Docker image
 
 # The container image is the only way this site ships. Every push to main
 # publishes a new image to the GitHub Container Registry, which the server then
-# pulls: ghcr.io/pklnx/ag-steuerberatung:latest
+# pulls: ghcr.io/pklnx/garrell-steuerberatung:latest
 #
 # Pull requests build the image as well but do not push it — since there is no
 # second deploy path left, a Dockerfile that no longer builds has to be caught

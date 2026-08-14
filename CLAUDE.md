@@ -124,7 +124,7 @@ The container is what gets shipped: nginx plus the static files, runnable on
 any server.
 
 ```sh
-docker compose up -d --build      # or: docker build -t ag-steuerberatung .
+docker compose up -d --build      # or: docker build -t garrell-steuerberatung .
 curl -I http://127.0.0.1:8080/
 ```
 
@@ -133,9 +133,17 @@ curl -I http://127.0.0.1:8080/
   New `.html` pages are picked up automatically (`COPY *.html`).
 - **Published to GHCR** by `.github/workflows/docker.yml` on every push to
   `main` (amd64 + arm64), tagged `latest` and `sha-<commit>`:
-  `ghcr.io/pklnx/ag-steuerberatung:latest`. The server only needs
-  `docker compose pull && docker compose up -d`; rolling back means pinning a
-  `sha-` tag. Pull requests build the image too, but do not push it.
+  `ghcr.io/pklnx/garrell-steuerberatung:latest`. The image name is derived from
+  `github.repository`, so it follows the repository name automatically. The
+  server only needs `docker compose pull && docker compose up -d`; rolling back
+  means pinning a `sha-` tag. Pull requests build the image too, but do not push
+  it.
+- **Repository rename (`ag-steuerberatung` → `garrell-steuerberatung`):** the
+  first push to `main` after the rename creates a *new* GHCR package under the
+  new name. New packages are **private** by default — switch it to public, and
+  point the server's `docker-compose.yml` at the new image. The old
+  `ag-steuerberatung` package keeps its images and can be deleted once the
+  server runs the new one.
 - The GHCR package is **public**, so the server pulls it without credentials —
   no `docker login` needed. If it is ever switched back to private, the server
   needs a login with a token carrying `read:packages`.
