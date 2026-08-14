@@ -3,8 +3,8 @@
 # The site is plain HTML/CSS with self-hosted fonts and no build step, so the
 # image is nothing but nginx plus the files. Build and run:
 #
-#   docker build -t ag-steuerberatung .
-#   docker run --rm -p 8080:8080 ag-steuerberatung
+#   docker build -t garrell-steuerberatung .
+#   docker run --rm -p 8080:8080 garrell-steuerberatung
 #
 # Bump the base image by changing the minor version below (patch releases are
 # picked up automatically on rebuild).
